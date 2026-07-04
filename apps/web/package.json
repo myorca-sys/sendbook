@@ -9,12 +9,10 @@
     "preview": "astro preview"
   },
   "dependencies": {
-    "@hono/zod-validator": "^0.4.3",
-    "@upstash/redis": "^1.38.0",
     "astro": "^4.16.18",
     "hono": "^4.12.27",
     "postgres": "^3.4.4",
-    "zod": "^4.4.3"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "wrangler": "^4.101.0"
