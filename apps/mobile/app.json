@@ -1,0 +1,58 @@
+{
+  "expo": {
+    "name": "Sendbook",
+    "slug": "sendbook",
+    "scheme": "sendbook",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "experiments": {
+      "bridgeless": false
+    },
+    "jsEngine": "hermes",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.sendbook.app"
+    },
+    "android": {
+      "package": "com.sendbook.app",
+      "versionCode": 1,
+      "targetSdkVersion": 34,
+      "usesCleartextTraffic": true,
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-secure-store",
+      "expo-router",
+      "expo-notifications",
+      "expo-updates",
+      "expo-image-picker",
+      "expo-file-system",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "networkInspector": false
+          },
+          "ios": {
+            "networkInspector": false
+          }
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "PLACEHOLDER_EAS_PROJECT_ID"
+      }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
+    }
+  }
+}

@@ -1,0 +1,17 @@
+name = "sendbook-api"
+main = "src/index.ts"
+compatibility_date = "2025-07-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[r2_buckets]]
+binding = "SENDBOOK_ASSETS"
+bucket_name = "sendbook-products"
+
+[triggers]
+crons = ["0 0 * * *"]
+
+[env.production]
+vars = { ENVIRONMENT = "production" }
+
+[env.staging]
+vars = { ENVIRONMENT = "staging" }

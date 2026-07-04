@@ -1,0 +1,50 @@
+{
+  "name": "sendbook-mobile",
+  "version": "1.0.0",
+  "main": "expo-router/entry",
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "expo lint",
+    "postinstall": "patch-package"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~56.0.14",
+    "@shopify/flash-list": "2.0.2",
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-query-persist-client": "^5.101.0",
+    "expo": "^56.0.9",
+    "expo-build-properties": "~56.0.17",
+    "expo-constants": "~56.0.17",
+    "expo-dev-client": "~56.0.19",
+    "expo-file-system": "~56.0.19",
+    "expo-haptics": "~56.0.3",
+    "expo-image-picker": "~56.0.6",
+    "expo-linking": "~56.0.13",
+    "expo-notifications": "~56.0.16",
+    "expo-router": "~56.2.9",
+    "expo-secure-store": "~56.0.4",
+    "expo-splash-screen": "~56.0.10",
+    "expo-status-bar": "~56.0.4",
+    "expo-updates": "~56.0.18",
+    "lucide-react-native": "^1.17.0",
+    "react": "19.2.3",
+    "react-native": "0.85.3",
+    "react-native-mmkv": "^4.3.1",
+    "react-native-safe-area-context": "~5.7.0",
+    "react-native-screens": "4.25.2",
+    "react-native-svg": "15.15.4",
+    "zustand": "^5.0.14"
+  },
+  "devDependencies": {
+    "@expo/ngrok": "^4.1.3",
+    "@types/react": "^19.2.0",
+    "babel-preset-expo": "~56.0.0",
+    "patch-package": "^8.0.1",
+    "postinstall-postinstall": "^2.1.0",
+    "typescript": "^5.9.3",
+    "zod": "^4.4.3"
+  },
+  "private": true
+}

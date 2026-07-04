@@ -1,0 +1,21 @@
+diff --git a/node_modules/@expo/metro-file-map/build/watchers/FallbackWatcher.js b/node_modules/@expo/metro-file-map/build/watchers/FallbackWatcher.js
+index 1bb69f1..58921eb 100644
+--- a/node_modules/@expo/metro-file-map/build/watchers/FallbackWatcher.js
++++ b/node_modules/@expo/metro-file-map/build/watchers/FallbackWatcher.js
+@@ -161,7 +161,15 @@ class FallbackWatcher extends AbstractWatcher_1.AbstractWatcher {
+         if (this.#watched[dir]) {
+             return false;
+         }
+-        const watcher = fs_1.default.watch(dir, { persistent: true }, (event, filename) => this.#normalizeChange(dir, event, filename));
++        
++        let watcher;
++        try {
++            watcher = fs_1.default.watch(dir, { persistent: true }, (event, filename) => this.#normalizeChange(dir, event, filename));
++        } catch (e) {
++            if (e.code === 'ENOSPC') return false;
++            throw e;
++        }
++
+         this.#watched[dir] = watcher;
+         watcher.on('error', this.#checkedEmitError);
+         if (this.root !== dir) {
