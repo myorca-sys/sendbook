@@ -11,13 +11,12 @@
     "db:pull": "drizzle-kit pull"
   },
   "dependencies": {
+    "@hono/zod-validator": "^0.4.3",
     "@upstash/redis": "^1.38.0",
     "better-auth": "^1.6.2",
-    "cheerio": "^1.2.0",
     "drizzle-orm": "^0.45.2",
     "hono": "^4.5.3",
     "postgres": "^3.4.4",
-    "protobufjs": "^8.5.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

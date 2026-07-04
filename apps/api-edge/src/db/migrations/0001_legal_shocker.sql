@@ -1,1 +1,0 @@
-ALTER TABLE "media_content" ADD COLUMN "metadata" jsonb;
