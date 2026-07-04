@@ -1,88 +1,95 @@
-#!/bin/bash
-# docs-link.sh — Recreate docs symlink for different environments
+#!/usr/bin/env bash
+# docs-link.sh — Sinkronisasi docs antara Termux & Obsidian
+#
+# Karena Android FUSE filesystem tidak allow symlink dari shared storage,
+# kita pake sync manual sebagai gantinya.
 #
 # Usage:
-#   ./docs-link.sh              # Show current status
-#   ./docs-link.sh termux       # Link to Android shared storage (Obsidian)
-#   ./docs-link.sh local        # Create real local docs/ directory
+#   ./docs-link.sh status           # Cek status kedua lokasi
+#   ./docs-link.sh to-obsidian      # Copy project/docs → shared (setelah commit)
+#   ./docs-link.sh from-obsidian    # Copy shared → project/docs (setelah edit di Obsidian)
+#   ./docs-link.sh watch            # Watch mode: auto-sync setiap perubahan
 #
-# On Termux (Android):
-#   Symlinks docs/ → Android shared storage so Obsidian can access it.
-#   Target: /storage/emulated/0/Documents/sendbook/docs/
-#
-# On Laptop/Desktop (Linux/macOS/Windows):
-#   Creates a real directory docs/ (no shared storage available).
-#   The directory is tracked by git as a real folder.
+# Lokasi:
+#   PROJ  = ~/projects/sendbook/docs/                          (git source of truth)
+#   OBS   = ~/storage/documents/sendbook/docs/ (diakses Obsidian)
 
 set -e
 
-TARGET_TERMUX="/storage/emulated/0/Documents/sendbook/docs"
-DOCS_DIR="$(dirname "$0")/docs"
+PROJ_DIR="$(cd "$(dirname "$0")/docs" && pwd)"
+OBS_DIR="$HOME/storage/documents/sendbook/docs"
+SYNC_LOG="$HOME/storage/documents/sendbook/.sync-log.md"
 
 status() {
-  if [ -L "$DOCS_DIR" ]; then
-    LINK_TARGET=$(readlink "$DOCS_DIR")
-    echo "📎 docs/ is a symlink → $LINK_TARGET"
-    if [ -d "$DOCS_DIR" ]; then
-      echo "✅ Target is accessible"
+  echo "📂 PROJ (git): $PROJ_DIR"
+  echo "   Files: $(find "$PROJ_DIR" -type f | wc -l)"
+  echo ""
+  echo "📂 OBS (Obsidian): $OBS_DIR"
+  if [ -d "$OBS_DIR" ]; then
+    echo "   Files: $(find "$OBS_DIR" -type f | wc -l)"
+  else
+    echo "   ⚠️  Not found — jalankan 'to-obsidian' dulu"
+  fi
+  echo ""
+  echo "🔄 Status:"
+  if [ -d "$OBS_DIR" ]; then
+    set +e
+    DIFF=$(diff -rq "$PROJ_DIR" "$OBS_DIR" 2>/dev/null | grep -c "differ\|Only in" || true)
+    set -e
+    if [ "$DIFF" -eq 0 ]; then
+      echo "   ✅ PROJ dan OBS sinkron"
     else
-      echo "⚠️  Target is NOT accessible (broken link — run on Termux)"
+      echo "   ⚠️  $DIFF file berbeda"
     fi
-  elif [ -d "$DOCS_DIR" ]; then
-    echo "📁 docs/ is a real directory ($(ls "$DOCS_DIR" | wc -l) files)"
-  elif [ ! -e "$DOCS_DIR" ]; then
-    echo "❌ docs/ does not exist"
   fi
 }
 
-setup_termux() {
-  if [ ! -d "$TARGET_TERMUX" ]; then
-    echo "❌ Target $TARGET_TERMUX does not exist."
-    echo "   Run 'cp -r docs/ \$HOME/storage/documents/sendbook/docs' first"
+to_obsidian() {
+  echo "📤 PROJ → OBS ..."
+  mkdir -p "$OBS_DIR"
+  cp -r "$PROJ_DIR"/* "$PROJ_DIR"/.* "$OBS_DIR"/ 2>/dev/null || true
+  rm -f "$OBS_DIR/.*" 2>/dev/null || true
+  echo "✅ Selesai. $(find "$OBS_DIR" -type f | wc -l) file di OBS"
+  echo "- $(date '+%Y-%m-%d %H:%M') — Sync PROJ→OBS" >> "$SYNC_LOG"
+}
+
+from_obsidian() {
+  if [ ! -d "$OBS_DIR" ]; then
+    echo "❌ OBS directory not found. Run 'to-obsidian' first."
     exit 1
   fi
-
-  if [ -d "$DOCS_DIR" ] && [ ! -L "$DOCS_DIR" ]; then
-    echo "📦 Backing up existing docs/ to docs.bak/ ..."
-    rm -rf "$(dirname "$0")/docs.bak"
-    cp -r "$DOCS_DIR" "$(dirname "$0")/docs.bak"
-    echo "✅ Backed up to docs.bak/"
-  fi
-
-  rm -rf "$DOCS_DIR"
-  ln -sf "$TARGET_TERMUX" "$DOCS_DIR"
-  echo "✅ Symlink created: docs/ → $TARGET_TERMUX"
-  status
+  echo "📥 OBS → PROJ ..."
+  cp -r "$OBS_DIR"/* "$PROJ_DIR"/
+  echo "✅ Selesai. Jangan lupa commit dari Termux:"
+  echo "   cd ~/projects/sendbook && git add docs/ && git commit -m 'docs: ...'"
+  echo "- $(date '+%Y-%m-%d %H:%M') — Sync OBS→PROJ" >> "$SYNC_LOG"
 }
 
-setup_local() {
-  if [ -L "$DOCS_DIR" ]; then
-    rm "$DOCS_DIR"
-    mkdir "$DOCS_DIR"
-    echo "# Local docs directory — replace with real content" > "$DOCS_DIR/README.md"
-    echo "✅ Real docs/ directory created"
-  elif [ ! -d "$DOCS_DIR" ]; then
-    mkdir "$DOCS_DIR"
-    echo "# Local docs directory — replace with real content" > "$DOCS_DIR/README.md"
-    echo "✅ Real docs/ directory created"
-  else
-    echo "✅ docs/ is already a real directory"
-  fi
-  status
+watch_mode() {
+  echo "👀 Watch mode: memantau perubahan di PROJ..."
+  echo "   Tekan Ctrl+C untuk berhenti"
+  echo ""
+  while true; do
+    to_obsidian
+    sleep 30
+  done
 }
 
 case "${1:-status}" in
   status)
     status
     ;;
-  termux)
-    setup_termux
+  to-obsidian|to)
+    to_obsidian
     ;;
-  local)
-    setup_local
+  from-obsidian|from)
+    from_obsidian
+    ;;
+  watch)
+    watch_mode
     ;;
   *)
-    echo "Usage: $0 {status|termux|local}"
+    echo "Usage: $0 {status|to-obsidian|from-obsidian|watch}"
     exit 1
     ;;
 esac

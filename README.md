@@ -12,10 +12,8 @@ sendbook/
 │   ├── api-edge/       # Hono.js API — Cloudflare Workers
 │   └── web/            # Astro — Customer Storefront + Landing
 ├── shared/             # Shared types & config
-├── docs/               # 📓 Dokumentasi (symlink → shared storage)
-│                       #   Bisa diedit via Obsidian:
-│                       #   Buka vault: Documents/sendbook/
-├── docs-link.sh        # 🔗 Script recreates symlink on any machine
+├── docs/               # 📓 Dokumentasi (git tracked)
+├── docs-link.sh        # 🔄 Sync script: Termux ↔ Obsidian
 └── package.json
 ```
 
@@ -34,11 +32,7 @@ sendbook/
 ## Development
 
 ```bash
-# Setup docs link (run once on each machine)
-./docs-link.sh termux   # on Android/Obsidian
-./docs-link.sh local    # on laptop/desktop
-
-# Install dependencies
+# Install API dependencies
 cd apps/api-edge && npm install --ignore-scripts
 
 # Start API dev server
@@ -49,5 +43,19 @@ cd apps/api-edge && npm run dev
 
 Semua dokumentasi ada di `docs/` — lihat [docs/00-INDEX.md](./docs/00-INDEX.md).
 
-**Di Android:** Buka folder `Documents/sendbook/` sebagai vault di Obsidian.
-**Di laptop:** `docs/` adalah folder biasa — edit langsung.
+### Baca di Obsidian (Android)
+```bash
+# Sync dari project ke shared storage (setelah commit)
+bash docs-link.sh to-obsidian
+
+# Buka vault Documents/sendbook/ di Obsidian
+```
+
+### Edit dari Obsidian
+```bash
+# Setelah edit di Obsidian, sync balik:
+bash docs-link.sh from-obsidian
+
+# Lalu commit dari Termux:
+git add docs/ && git commit -m "docs: ..."
+```
