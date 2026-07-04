@@ -1,16 +1,9 @@
 {
   "name": "sendbook",
   "private": true,
-  "type": "module",
-  "scripts": {
-    "dev:api": "cd apps/api-edge && bun run dev",
-    "dev:web": "cd apps/web && bun run dev",
-    "dev:mobile": "cd apps/mobile && npx expo start",
-    "format": "prettier --write \"**/*.{js,jsx,ts,tsx,css,md,json}\""
-  },
-  "devDependencies": {
-    "prettier": "^3.8.3",
-    "prettier-plugin-tailwindcss": "^0.8.0",
-    "zod": "^4.4.3"
+  "dependencies": {
+    "hono": "^4.12.27",
+    "postgres": "^3.4.4",
+    "zod": "^3.23.8"
   }
 }
