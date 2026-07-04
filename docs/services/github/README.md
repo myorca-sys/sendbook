@@ -8,21 +8,17 @@
 
 | Item | Nilai | Status |
 |---|---|---|
-| **Akun GitHub** | | ⬜ |
-| **Nama Repo** | `sendbook` | ⬜ |
-| **Visibility** | `public` / `private` | ⬜ |
-| **Remote URL** | `git@github.com:[user]/sendbook.git` | ⬜ |
-| **Default Branch** | `main` | ⬜ |
+ | **Akun GitHub** | `myorca-sys` | ✅ |
+| **Nama Repo** | `sendbook` | ✅ |
+| **Visibility** | `public` | ✅ |
+| **Remote URL** | `https://github.com/myorca-sys/sendbook.git` (HTTPS) | ✅ |
+| **Default Branch** | `main` | ✅ |
 
-## Langkah Setup
+## Setup yang sudah dilakukan
 
-- [ ] Buat repo di github.com (jangan init README — sudah ada)
-- [ ] Set remote & push:
-```bash
-cd ~/projects/sendbook
-git remote add origin git@github.com:[username]/sendbook.git
-git push -u origin main
-```
+- ✅ Repo dibuat: https://github.com/myorca-sys/sendbook
+- ✅ Code sudah di-push
+- ✅ Remote sudah diset (HTTPS dengan token, lalu dibersihkan dari URL)
 - [ ] (Opsional) Set branch protection untuk `main`:
   - Settings → Branches → Add rule
   - Require PR review before merge

@@ -4,46 +4,19 @@
 
 | Item | Nilai | Status |
 |---|---|---|
-| **Email Akun** | | ⬜ |
-| **Project Name** | `sendbook` | ⬜ |
-| **Database Password** | | ⬜ |
-| **Region** | Singapore (ap-southeast-1) | ⬜ |
-| **Project URL** | `https://xxxxx.supabase.co` | ⬜ |
-| **Anon Public Key** | | ⬜ |
-| **Service Role Key** | | ⬜ |
-| **Database URL (PS Pooling)** | | ⬜ |
-| **Database URL (Direct)** | | ⬜ |
+| **Email Akun** | `Moehamadhkl@gmail.com` (sama dengan Cloudflare) | ✅ |
+| **Project Name** | `ppwocgmumbdbvnqprxrg` (project Orca) | ✅ reuse |
+| **Database Password** | `Habibiendut1.` | ✅ |
+| **Region** | Singapore (ap-southeast-1) ✅ |
+| **Project URL** | `https://ppwocgmumbdbvnqprxrg.supabase.co` | ✅ |
+| **Database URL (PS Pooling)** | `postgresql://postgres.ppwocgmumbdbvnqprxrg:Habibiendut1.@aws-1-ap-southeast-1.pooler.supabase.com:5432/postgres` | ✅ |
+| **Database URL (Direct)** | `postgresql://postgres.ppwocgmumbdbvnqprxrg:Habibiendut1.@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres` | ✅ |
 
-## Langkah Setup
+## Setup yang sudah dilakukan
 
-### 1. Buat Project
-- [ ] Buka [supabase.com](https://supabase.com) → Login
-- [ ] **New Project**
-- [ ] Nama: `sendbook`
-- [ ] Database Password: [isi sendiri, simpan aman]
-- [ ] Region: **Southeast Asia** (Singapore)
-- [ ] Tunggu provisioning (~2-3 menit)
-
-### 2. Setup Database
-- [ ] Buka **SQL Editor**
-- [ ] Paste isi `apps/api-edge/src/db/migrations/0000_init.sql`
-- [ ] **Run** (membuat tabel: stores, products, analytics_events)
-- [ ] Opsional: paste & run `seed.sql` untuk data dummy
-
-### 3. Catat Credentials
-- [ ] Buka **Project Settings → Database → Connection string**
-- [ ] Copy URL (gunakan `psql` mode dengan pooling)
-- [ ] Buka **Project Settings → API**
-- [ ] Copy **Project URL** & **anon public key**
-
-### 4. Simpan ke Environment
-```bash
-# .dev.vars (local dev)
-DATABASE_URL=postgresql://postgres:[password]@[host].pooler.supabase.com:6543/postgres
-
-# wrangler secret (production)
-echo "DATABASE_URL" | npx wrangler secret put DATABASE_URL
-```
+- ✅ Migration `0000_init.sql` dijalankan (tabel: stores, products, analytics_events)
+- ✅ Seed data dijalankan (1 store + 6 products)
+- ✅ DB connection diverifikasi (langsung dari Termux via node-postgres)
 
 ## Migration
 

@@ -5,15 +5,16 @@
 | Item | Nilai | Status |
 |---|---|---|
 | **Worker Name** | `sendbook-api` | ⬜ |
-| **Route** | `api.sendbook.id/*` | ⬜ |
-| **Deploy Method** | `wrangler deploy` (dari laptop) | ⬜ |
+| **Route** | `api.sendbook.id/*` (atau `sendbook.pages.dev/api/*`) | ⬜ |
+| **Deploy Method** | `wrangler deploy` (dari laptop / GitHub Actions) | ⬜ (blocked) |
 
 ## Langkah Setup
 
+- [x] Wrangler config sudah di `apps/api-edge/wrangler.toml`
 - [ ] Login ke Cloudflare Dashboard → Workers & Pages
 - [ ] Create Worker (atau deploy dari CLI)
-- [ ] Set route binding: `api.sendbook.id/*`
-- [ ] Deploy dari laptop:
+- [ ] Set route binding
+- [ ] Deploy dari laptop (wrangler tidak bisa jalan di Termux):
 ```bash
 cd apps/api-edge
 npx wrangler deploy

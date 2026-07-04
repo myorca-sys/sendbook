@@ -16,6 +16,14 @@ Lihat file terpisah untuk detail:
 
 | Item | Nilai | Status |
 |---|---|---|
-| **Email** | (bisa pakai akun Orca) | ⬜ |
-| **Account ID** | | ⬜ |
-| **API Token** | | ⬜ |
+| **Email** | `Moehamadhkl@gmail.com` (akun Orca) | ✅ |
+| **Account ID** | `cfcb770cf5a91b6505a25d48d476e4c7` | ✅ |
+| **API Token** | (pakai token `zenius` dari `.env.cloudflare`) | ✅ |
+
+## Resource yang sudah dibuat
+
+| Resource | Nama | Status |
+|---|---|---|
+| **Pages** | `sendbook` → `https://sendbook.pages.dev` | ✅ |
+| **R2 bucket** | `sendbook-products` | ⬜ (perlu API token baru) |
+| **Worker** | `sendbook-api` | ⬜ (perlu deploy dari laptop) |

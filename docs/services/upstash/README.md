@@ -4,21 +4,23 @@
 
 | Item | Nilai | Status |
 |---|---|---|
-| **Email Akun** | | ⬜ |
-| **Database Name** | `sendbook` | ⬜ |
-| **Region** | Singapore (ap-southeast-1) | ⬜ |
-| **REST URL** | `https://[id].upstash.io` | ⬜ |
-| **REST Token** | `xxxxxxxx` | ⬜ |
+| **Email Akun** | (pakai akun GitHub `ngakal`) | ⬜ |
+| **Database Name** | `powerful-crow-69427` (instance Orca) | ✅ reuse |
+| **Region** | (tidak diketahui, ping OK dari SG) | ✅ |
+| **REST URL** | `https://powerful-crow-69427.upstash.io` | ✅ |
+| **REST Token** | `gQAAAAAAAQ8zAAIgcDIzNzIxOWVjNDZhMGE0MzU1ODQ0ZmNhOGE0Mzg1OTI3ZA` | ✅ |
 
-## Langkah Setup
+## Verifikasi
 
-- [ ] Buka [upstash.com](https://upstash.com)
-- [ ] Login (bisa pakai akun GitHub)
-- [ ] **Create Database** → pilih **Redis**
-- [ ] Region: **Singapore** (supaya dekat dengan Supabase)
-- [ ] Setelah jadi, buka **REST API** tab
-- [ ] Copy **UPSTASH_REDIS_REST_URL** & **UPSTASH_REDIS_REST_TOKEN**
-- [ ] Simpan ke environment:
+- ✅ Redis connection diverifikasi: `PONG` dari Termux
+
+## Setup selanjutnya
+
+- [ ] Bisa buat instance baru khusus sendbook (rekomendasi)
+- [ ] Atau reuse instance Orca yang sudah ada
+- [ ] Copy credentials ke environment:
+
+> ⚠️ Token ini sudah terekspos di git history Orca. Sebaiknya buat instance Redis baru untuk production.
 ```bash
 # .dev.vars
 UPSTASH_REDIS_REST_URL=https://[id].upstash.io
