@@ -5,11 +5,8 @@
     "scheme": "sendbook",
     "version": "1.0.0",
     "orientation": "portrait",
-    "userInterfaceStyle": "dark",
+    "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "experiments": {
-      "bridgeless": false
-    },
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
@@ -20,8 +17,7 @@
       "versionCode": 1,
       "targetSdkVersion": 34,
       "usesCleartextTraffic": true,
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "edgeToEdgeEnabled": true
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,26 +25,20 @@
     "plugins": [
       "expo-secure-store",
       "expo-router",
-      "expo-notifications",
-      "expo-updates",
       "expo-image-picker",
       "expo-file-system",
       [
         "expo-build-properties",
         {
-          "android": {
-            "networkInspector": false
-          },
-          "ios": {
-            "networkInspector": false
-          }
+          "android": { "networkInspector": false },
+          "ios": { "networkInspector": false }
         }
       ]
     ],
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "PLACEHOLDER_EAS_PROJECT_ID"
+        "projectId": "0ec15b5b-cf0f-47f5-879f-f83f97d03ee8"
       }
     },
     "runtimeVersion": {

@@ -1,50 +1,36 @@
-import { Stack } from "expo-router";
-import { AuthProvider } from "../lib/auth";
-import { QueryProvider } from "../lib/query-provider";
-import { StatusBar } from "expo-status-bar";
-import { View, StyleSheet, LogBox } from "react-native";
-import * as SplashScreen from "expo-splash-screen";
-import React from "react";
-import { Theme } from "../lib/theme";
-import { CustomSplashScreen } from "../components/ui/CustomSplashScreen";
-import { useAppInitialization } from "../lib/hooks/useAppInitialization";
+import { Stack } from 'expo-router'
+import { StatusBar } from 'expo-status-bar'
+import { View, StyleSheet } from 'react-native'
+import { AuthProvider, useAuth } from '../lib/auth'
+import { theme } from '../lib/theme'
 
-LogBox.ignoreLogs(["Unable to activate keep awake", "Uncaught (in promise, id: "]);
+function RootNavigator() {
+  const { user, isLoading } = useAuth()
 
-SplashScreen.preventAutoHideAsync().catch(() => {});
-
-export default function RootLayout() {
-  const { appReady, isWakingUp, activeTrivia } = useAppInitialization();
+  if (isLoading) {
+    return <View style={[styles.root, { backgroundColor: theme.bg }]} />
+  }
 
   return (
-    <View style={styles.rootView}>
-      {!appReady || isWakingUp ? (
-        <CustomSplashScreen isWakingUp={isWakingUp} activeTrivia={activeTrivia} />
-      ) : null}
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
+      {!user ? (
+        <Stack.Screen name="onboarding" />
+      ) : (
+        <Stack.Screen name="(tabs)" />
+      )}
+    </Stack>
+  )
+}
 
-      <QueryProvider>
-        <AuthProvider>
-          <StatusBar style="light" />
-          <Stack
-            screenOptions={{
-              contentStyle: { backgroundColor: Theme.colors.background },
-              animation: "default",
-            }}
-          >
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="explore" options={{ headerShown: false }} />
-            <Stack.Screen name="trending" options={{ headerShown: false }} />
-            <Stack.Screen name="notifications" options={{ headerShown: false }} />
-            <Stack.Screen name="anime/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="manga/[id]" options={{ headerShown: false }} />
-            <Stack.Screen name="watch/[id]/[episode]" options={{ headerShown: false }} />
-          </Stack>
-        </AuthProvider>
-      </QueryProvider>
-    </View>
-  );
+export default function RootLayout() {
+  return (
+    <AuthProvider>
+      <StatusBar style="dark" />
+      <RootNavigator />
+    </AuthProvider>
+  )
 }
 
 const styles = StyleSheet.create({
-  rootView: { flex: 1, backgroundColor: Theme.colors.background },
-});
+  root: { flex: 1 },
+})

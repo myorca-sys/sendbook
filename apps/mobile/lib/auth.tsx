@@ -1,93 +1,90 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { GoogleSignin } from "@react-native-google-signin/google-signin";
-import * as SecureStore from "expo-secure-store";
-import { checkSession, verifyWithBackend } from "./utils/authHelpers";
+import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
+import * as SecureStore from 'expo-secure-store'
+import { api, apiWithToken } from './api'
 
-// Memory cache for tokens to prevent SecureStore I/O bottlenecks during fetch calls
-let inMemoryToken: string | null = null;
-export const getMemoryToken = () => inMemoryToken;
-export const setMemoryToken = (token: string | null) => {
-  inMemoryToken = token;
-};
+const BASE = 'https://sendbook.pages.dev'
 
-interface AuthContextType {
-  user: any | null;
-  isLoading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signOut: () => Promise<void>;
+type User = {
+  id: string
+  email: string
+  name: string
+  storeId: string | null
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+type AuthContext = {
+  user: User | null
+  token: string | null
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<void>
+  logout: () => Promise<void>
+  refresh: () => Promise<void>
+}
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<any | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const ctx = createContext<AuthContext>(null!)
 
-  useEffect(() => {
-    GoogleSignin.configure({
-      webClientId:
-        process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID ||
-        "475749423464-e2dq5kmtgdehbbb369f0nvr86f73gpl0.apps.googleusercontent.com",
-      offlineAccess: true,
-      forceCodeForRefreshToken: true,
-    });
+export function AuthProvider({ children }: { children: ReactNode }) {
+  const [user, setUser] = useState<User | null>(null)
+  const [token, setToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
-    // Check session once on app load
-    checkSession(setUser, setIsLoading).then((sessionData) => {
-      if (sessionData) {
-        const token =
-          sessionData?.token ||
-          sessionData?.session?.token ||
-          sessionData?.accessToken ||
-          sessionData?.user?.token;
-        setMemoryToken(token || null);
-      }
-    });
-  }, []);
-
-  const signInWithGoogle = async () => {
+  const refresh = useCallback(async () => {
+    const stored = await SecureStore.getItemAsync('session_token')
+    if (!stored) { setIsLoading(false); return }
     try {
-      setIsLoading(true);
-      await GoogleSignin.hasPlayServices();
-      const userInfo = await GoogleSignin.signIn();
-      const tokens = await GoogleSignin.getTokens();
-      if (userInfo?.data?.idToken) {
-        await verifyWithBackend(
-          userInfo.data.idToken,
-          tokens.accessToken,
-          setUser,
-          setIsLoading,
-          setMemoryToken,
-        );
-      }
-    } catch (error: any) {
-      console.error("Google Sign-In Error:", error);
-    } finally {
-      setIsLoading(false);
+      const data = await api('/api/dashboard/me', {
+        headers: { Cookie: `sendbook_session=${stored}` },
+      })
+      setUser(data.user)
+      setToken(stored)
+    } catch {
+      await SecureStore.deleteItemAsync('session_token')
+      setUser(null)
+      setToken(null)
     }
-  };
+    setIsLoading(false)
+  }, [])
 
-  const signOut = async () => {
-    try {
-      setUser(null);
-      setMemoryToken(null);
-      await SecureStore.deleteItemAsync("auth_session");
-      await GoogleSignin.signOut();
-    } catch (error) {}
-  };
+  useEffect(() => { refresh() }, [refresh])
+
+  const login = async (email: string, password: string) => {
+    const res = await fetch(BASE + '/api/dashboard/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: 'Login failed' }))
+      throw new Error(body.error)
+    }
+    const data = await res.json()
+    const cookie = res.headers.get('set-cookie') || ''
+    const match = cookie.match(/sendbook_session=([^;]+)/)
+    const t = match?.[1]
+    if (!t) throw new Error('No session token')
+    await SecureStore.setItemAsync('session_token', t)
+    setUser(data.user)
+    setToken(t)
+  }
+
+  const logout = async () => {
+    if (token) {
+      await api('/api/dashboard/logout', {
+        method: 'POST',
+        headers: { Cookie: `sendbook_session=${token}` },
+      }).catch(() => {})
+    }
+    await SecureStore.deleteItemAsync('session_token')
+    setUser(null)
+    setToken(null)
+  }
 
   return (
-    <AuthContext.Provider
-      value={{ user, isLoading, signInWithGoogle, signOut }}
-    >
+    <ctx.Provider value={{ user, token, isLoading, login, logout, refresh }}>
       {children}
-    </AuthContext.Provider>
-  );
+    </ctx.Provider>
+  )
 }
 
 export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined)
-    throw new Error("useAuth must be used within an AuthProvider");
-  return context;
+  return useContext(ctx)
 }

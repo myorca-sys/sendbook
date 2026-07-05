@@ -1,86 +1,81 @@
-import React, { useState } from "react";
-import { View, StyleSheet, Animated } from "react-native";
-import { useRouter } from "expo-router";
-import { StatusBar } from "expo-status-bar";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { HomeContent } from "../../components/home/HomeContent";
-import { HomeHeader } from "../../components/home/ui/HomeHeader";
-import { HomeBottomPill } from "../../components/home/ui/HomeBottomPill";
-import { useHomeTabs } from "../../components/home/hooks/useHomeTabs";
-import { Theme } from "../../lib/theme";
-import { FEATURE_FLAGS } from "../../lib/config/features";
+import { useEffect, useState } from 'react'
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native'
+import { useAuth } from '../../lib/auth'
+import { apiWithToken } from '../../lib/api'
+import { theme } from '../../lib/theme'
+import { Share } from 'react-native'
 
-export default function HomeScreen() {
-  const router = useRouter();
-  const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<"anime" | "manga">("anime");
+export default function BerandaScreen() {
+  const { user, token } = useAuth()
+  const [store, setStore] = useState<any>(null)
+  const [stats, setStats] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
 
-  const {
-    tabAnim,
-    animeScrollY,
-    mangaScrollY,
-    handleTabChange,
-    animeOpacity,
-    mangaOpacity,
-    headerBg,
-  } = useHomeTabs(activeTab, setActiveTab);
+  const load = async () => {
+    if (!token || !user?.storeId) { setLoading(false); return }
+    try {
+      const s = await apiWithToken('/api/stores/warung-bu-ana', token)
+      setStore(s)
+      const st = await apiWithToken(`/api/stores/${s.slug}/analytics`, token)
+      setStats(st)
+    } catch {}
+    setLoading(false)
+  }
+
+  useEffect(() => { load() }, [token])
+
+  const onRefresh = async () => {
+    setRefreshing(true)
+    await load()
+    setRefreshing(false)
+  }
+
+  const visits = stats.filter((s: any) => s.type === 'visit').reduce((a: number, b: any) => a + Number(b.count), 0)
+  const clicks = stats.filter((s: any) => s.type === 'whatsapp_click').reduce((a: number, b: any) => a + Number(b.count), 0)
+
+  const handleShare = () => {
+    if (store) {
+      Share.share({ url: `https://sendbook.pages.dev/store/${store.slug}`, message: `Toko ${store.name}: https://sendbook.pages.dev/store/${store.slug}` })
+    }
+  }
 
   return (
-    <View style={styles.container}>
-      <StatusBar style="light" />
-
-      <HomeHeader
-        headerBg={headerBg}
-        onSearchPress={() => router.push(`/explore?mediaType=${activeTab}` as any)}
-        onBellPress={() => router.push("/notifications" as any)}
-      />
-
-      <View style={styles.content}>
-        <Animated.View
-          style={[
-            styles.absoluteFill,
-            { opacity: animeOpacity, zIndex: activeTab === "anime" ? 10 : 0 },
-          ]}
-          pointerEvents={activeTab === "anime" ? "auto" : "none"}
-        >
-          <HomeContent scrollY={animeScrollY} mediaType="anime" />
-        </Animated.View>
-
-        {FEATURE_FLAGS.ENABLE_MANGA && (
-          <Animated.View
-            style={[
-              styles.absoluteFill,
-              { opacity: mangaOpacity, zIndex: activeTab === "manga" ? 10 : 0 },
-            ]}
-            pointerEvents={activeTab === "manga" ? "auto" : "none"}
-          >
-            <HomeContent scrollY={mangaScrollY} mediaType="manga" />
-          </Animated.View>
+    <ScrollView style={styles.container} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}>
+      <View style={styles.header}>
+        <Text style={styles.greeting}>Halo, {user?.name || 'Admin'}</Text>
+        {store && <Text style={styles.storeName}>{store.name}</Text>}
+        {store && (
+          <TouchableOpacity onPress={handleShare}>
+            <Text style={styles.share}>🔗 Bagikan toko</Text>
+          </TouchableOpacity>
         )}
       </View>
 
-      {FEATURE_FLAGS.ENABLE_MANGA && (
-        <HomeBottomPill
-          activeTab={activeTab}
-          onTabChange={handleTabChange}
-          bottomInset={insets.bottom > 0 ? insets.bottom / 3 : 0}
-          tabAnim={tabAnim}
-        />
+      {store && (
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNum}>{visits}</Text>
+            <Text style={styles.statLabel}>Kunjungan</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statNum}>{clicks}</Text>
+            <Text style={styles.statLabel}>Klik WA</Text>
+          </View>
+        </View>
       )}
-    </View>
-  );
+    </ScrollView>
+  )
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: Theme.colors.background },
-  content: { flex: 1 },
-  absoluteFill: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: "100%",
-    height: "100%",
-  },
-});
+  container: { flex: 1, backgroundColor: theme.bg },
+  header: { padding: 24, paddingTop: 60 },
+  greeting: { fontSize: theme.fontSize.md, color: theme.textDim, marginBottom: 4 },
+  storeName: { fontSize: theme.fontSize['2xl'], fontWeight: '700', color: theme.text },
+  share: { fontSize: theme.fontSize.sm, color: theme.primary, marginTop: 8 },
+  statsRow: { flexDirection: 'row', paddingHorizontal: 24, gap: 12, marginBottom: 24 },
+  statCard: { flex: 1, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.md, padding: 20, alignItems: 'center' },
+  statNum: { fontSize: 32, fontWeight: '700', color: theme.text },
+  statLabel: { fontSize: theme.fontSize.sm, color: theme.textDim, marginTop: 4 },
+})
