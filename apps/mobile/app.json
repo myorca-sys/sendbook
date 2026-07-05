@@ -30,7 +30,6 @@
       "expo-secure-store",
       "expo-router",
       "expo-image-picker",
-      "expo-file-system",
       [
         "expo-build-properties",
         {
