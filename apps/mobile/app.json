@@ -7,6 +7,9 @@
     "orientation": "portrait",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
+    "experiments": {
+      "bridgeless": false
+    },
     "jsEngine": "hermes",
     "ios": {
       "supportsTablet": true,
@@ -17,7 +20,8 @@
       "versionCode": 1,
       "targetSdkVersion": 34,
       "usesCleartextTraffic": true,
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false
     },
     "web": {
       "favicon": "./assets/favicon.png"
