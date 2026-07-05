@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react'
-import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, ScrollView, RefreshControl, TouchableOpacity, Share, Modal } from 'react-native'
 import { useAuth } from '../../lib/auth'
 import { apiWithToken } from '../../lib/api'
 import { theme } from '../../lib/theme'
-import { Share } from 'react-native'
+import QRCode from '../../components/QRCode'
 
 export default function BerandaScreen() {
   const { user, token } = useAuth()
@@ -11,6 +11,7 @@ export default function BerandaScreen() {
   const [stats, setStats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [showQR, setShowQR] = useState(false)
 
   const load = async () => {
     if (!token || !user?.storeId) { setLoading(false); return }
@@ -64,6 +65,24 @@ export default function BerandaScreen() {
           </View>
         </View>
       )}
+
+      {store && (
+        <TouchableOpacity style={styles.qrButton} onPress={() => setShowQR(true)}>
+          <Text style={styles.qrButtonText}>📱 Tampilkan QR Toko</Text>
+        </TouchableOpacity>
+      )}
+
+      <Modal visible={showQR} transparent animationType="fade">
+        <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowQR(false)}>
+          <View style={styles.modalContent}>
+            <QRCode value={`https://sendbook.pages.dev/store/${store?.slug || 'warung-bu-ana'}`} size={250} />
+            <Text style={styles.qrLabel}>Scan untuk buka toko</Text>
+            <TouchableOpacity onPress={() => setShowQR(false)}>
+              <Text style={styles.closeBtn}>Tutup</Text>
+            </TouchableOpacity>
+          </View>
+        </TouchableOpacity>
+      </Modal>
     </ScrollView>
   )
 }
@@ -78,4 +97,10 @@ const styles = StyleSheet.create({
   statCard: { flex: 1, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.md, padding: 20, alignItems: 'center' },
   statNum: { fontSize: 32, fontWeight: '700', color: theme.text },
   statLabel: { fontSize: theme.fontSize.sm, color: theme.textDim, marginTop: 4 },
+  qrButton: { marginHorizontal: 24, marginBottom: 24, backgroundColor: theme.surface, borderWidth: 1, borderColor: theme.border, borderRadius: theme.radius.md, padding: 16, alignItems: 'center' },
+  qrButtonText: { fontSize: theme.fontSize.md, color: theme.primary, fontWeight: '600' },
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', justifyContent: 'center', alignItems: 'center' },
+  modalContent: { backgroundColor: '#fff', borderRadius: theme.radius.lg, padding: 32, alignItems: 'center' },
+  qrLabel: { fontSize: theme.fontSize.sm, color: theme.textDim, marginTop: 12 },
+  closeBtn: { fontSize: theme.fontSize.md, color: theme.primary, marginTop: 16, fontWeight: '600' },
 })
