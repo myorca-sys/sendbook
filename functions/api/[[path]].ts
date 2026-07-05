@@ -204,4 +204,105 @@ app.get("/api/stores/:slug/analytics", async (c) => {
   }
 })
 
+// ─── Dashboard Auth ─────────────────────────────────────
+
+async function verifyPassword(password: string, hash: string): Promise<boolean> {
+  const parts = hash.split(':')
+  if (parts.length !== 2) return false
+  const salt = Uint8Array.from(atob(parts[0]), c => c.charCodeAt(0))
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])
+  const derived = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, key, 256)
+  const expected = Uint8Array.from(atob(parts[1]), c => c.charCodeAt(0))
+  if (derived.byteLength !== expected.length) return false
+  const d = new Uint8Array(derived)
+  return d.every((v, i) => v === expected[i])
+}
+
+async function createSession(env: Env, userId: string): Promise<string> {
+  const token = crypto.randomUUID()
+  const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
+  const resp = await fetch(env.UPSTASH_REDIS_REST_URL + '/set/session:' + token, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
+    body: JSON.stringify(JSON.stringify({ userId, expiresAt })),
+  })
+  if (!resp.ok) throw new Error('Failed to create session')
+  await fetch(env.UPSTASH_REDIS_REST_URL + '/expire/session:' + token + '/604800', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
+  })
+  return token
+}
+
+async function getSession(env: Env, token: string): Promise<{ userId: string } | null> {
+  const resp = await fetch(env.UPSTASH_REDIS_REST_URL + '/get/session:' + token, {
+    headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
+  })
+  const data: any = await resp.json()
+  if (!data.result) return null
+  const session = JSON.parse(data.result)
+  if (session.expiresAt < Date.now()) return null
+  return { userId: session.userId }
+}
+
+async function deleteSession(env: Env, token: string): Promise<void> {
+  await fetch(env.UPSTASH_REDIS_REST_URL + '/del/session:' + token, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
+  })
+}
+
+app.post('/api/dashboard/login', async (c) => {
+  const { email, password } = await c.req.json()
+  if (!email || !password) return c.json({ error: 'Email and password required' }, 400)
+  const sql = getSql(c.env)
+  try {
+    const [user] = await sql`SELECT * FROM merchant_users WHERE email = ${email}`
+    if (!user) return c.json({ error: 'Invalid credentials' }, 401)
+    const valid = await verifyPassword(password, user.password_hash)
+    if (!valid) return c.json({ error: 'Invalid credentials' }, 401)
+    const token = await createSession(c.env, user.id)
+    return new Response(JSON.stringify({ user: { id: user.id, email: user.email, name: user.name, storeId: user.store_id } }), {
+      status: 200,
+      headers: {
+        'content-type': 'application/json',
+        'set-cookie': `sendbook_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`,
+      },
+    })
+  } finally {
+    await sql.end()
+  }
+})
+
+app.get('/api/dashboard/me', async (c) => {
+  const cookie = c.req.header('cookie') || ''
+  const match = cookie.match(/sendbook_session=([^;]+)/)
+  if (!match) return c.json({ error: 'Not authenticated' }, 401)
+  const session = await getSession(c.env, match[1])
+  if (!session) return c.json({ error: 'Session expired' }, 401)
+  const sql = getSql(c.env)
+  try {
+    const [user] = await sql`SELECT id, email, name, store_id FROM merchant_users WHERE id = ${session.userId}`
+    if (!user) return c.json({ error: 'User not found' }, 401)
+    return c.json({ user: { id: user.id, email: user.email, name: user.name, storeId: user.store_id } })
+  } finally {
+    await sql.end()
+  }
+})
+
+app.post('/api/dashboard/logout', async (c) => {
+  const cookie = c.req.header('cookie') || ''
+  const match = cookie.match(/sendbook_session=([^;]+)/)
+  if (match) await deleteSession(c.env, match[1])
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: {
+      'content-type': 'application/json',
+      'set-cookie': 'sendbook_session=; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=0',
+    },
+  })
+})
+
+// ─── Export ────────────────────────────────────────────
+
 export const onRequest = handle(app)
