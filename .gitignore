@@ -51,3 +51,6 @@ apps/mobile/ios/
 # logs
 *.log
 docs.bak/
+
+# docs/ is local symlink to shared storage (Obsidian)
+/docs
