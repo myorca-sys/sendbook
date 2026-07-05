@@ -224,7 +224,7 @@ async function createSession(env: Env, userId: string): Promise<string> {
   const resp = await fetch(env.UPSTASH_REDIS_REST_URL + '/set/session:' + token, {
     method: 'POST',
     headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
-    body: JSON.stringify(JSON.stringify({ userId, expiresAt })),
+    body: JSON.stringify({ userId, expiresAt }),
   })
   if (!resp.ok) throw new Error('Failed to create session')
   await fetch(env.UPSTASH_REDIS_REST_URL + '/expire/session:' + token + '/604800', {
