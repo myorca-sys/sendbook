@@ -34,6 +34,8 @@ function renderProduct(p: any, wa: string): string {
 }
 
 function buildPage(store: any, products: any[]): string {
+  if (!store) return '<!DOCTYPE html><html lang="id"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Toko tidak ditemukan — Sendbook</title><style>body{font-family:Inter,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;color:#18181b;text-align:center;padding:2rem}div{max-width:400px}h1{font-size:1.5rem;margin-bottom:.5rem}p{color:#71717a}</style></head><body><div><h1>Toko tidak ditemukan</h1><p>Link ini tidak valid. Periksa kembali alamatnya.</p></div></body></html>'
+
   const productCards = products.map(p => renderProduct(p, store.whatsapp)).join('\n')
   const firstImage = products.find(p => p.images?.[0])?.images?.[0]
 
@@ -142,6 +144,7 @@ export async function onRequest(context) {
         status: 404,
       })
     }
+
     const products = await sql`SELECT * FROM products WHERE store_id = ${store.id} ORDER BY sort_order`
     await sql.end()
 
@@ -149,8 +152,10 @@ export async function onRequest(context) {
       headers: { 'content-type': 'text/html;charset=utf-8' },
     })
   } catch (e) {
+    console.error('Store SSR error:', e)
     return new Response(buildPage(null, []), {
       headers: { 'content-type': 'text/html;charset=utf-8' },
+      status: 500,
     })
   }
 }
