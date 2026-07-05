@@ -338,6 +338,6 @@ Seluruh tech stack Sendbook sudah teruji di Orca project:
 |---|---|
 | Visi & Misi | [01-VISION.md](./01-VISION.md) |
 | Masalah & Solusi | [02-PROBLEM.md](./02-PROBLEM.md) |
-| Arsitektur Teknis | [03-ARCHITECTURE.md](./03-ARCHITECTURE.md) |
-| Mastery Todo List | [04-MASTERY-TODO.md](./04-MASTERY-TODO.md) |
+| Arsitektur Teknis | [03-ARCHITECTURE.md](../technical/03-ARCHITECTURE.md) |
+| Mastery Todo List | [04-MASTERY-TODO.md](../technical/04-MASTERY-TODO.md) |
 | Roadmap | [05-ROADMAP.md](./05-ROADMAP.md) |

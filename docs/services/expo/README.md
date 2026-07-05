@@ -47,3 +47,12 @@ eas update --branch production --message "fix: ..."
 - **EAS Update** gratis unlimited untuk update JS
 - Build APK pertama butuh ~10-15 menit
 - Update selanjutnya via EAS Update (hitungan detik, tanpa rebuild)
+
+Slug sendbook
+
+ID `0ec15b5b-cf0f-47f5-879f-f83f97d03ee8`
+
+Owner mhaekal
+
+pat token 
+V7re8sU0lfNW2KNGonl9ODM2tvJb6kRiQGZUasJ0

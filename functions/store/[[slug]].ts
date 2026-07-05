@@ -83,7 +83,15 @@ export async function onRequest(context) {
     const products = await sql`SELECT * FROM products WHERE store_id = ${store.id} ORDER BY sort_order`;
     await sql.end();
 
-    const injected = STORE_PAGE.replace(
+    let injected = STORE_PAGE.replace(
+      '<title>Sendbook</title>',
+      `<title>${esc(store.name)} — Sendbook</title>` +
+      (store.description ? `\n  <meta name="description" content="${esc(store.description)}">` : '') +
+      `\n  <meta property="og:title" content="${esc(store.name)} — Sendbook">` +
+      (store.description ? `\n  <meta property="og:description" content="${esc(store.description)}">` : '')
+    );
+
+    injected = injected.replace(
       '<div id="header" class="header"><div class="loading">Memuat...</div></div>',
       '<div id="header" class="header">' +
         '<h1>' + esc(store.name) + '</h1>' +

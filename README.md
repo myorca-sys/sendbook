@@ -41,7 +41,7 @@ cd apps/api-edge && npm run dev
 
 ## Dokumentasi
 
-Semua dokumentasi ada di `docs/` — lihat [docs/00-INDEX.md](./docs/00-INDEX.md).
+Semua dokumentasi ada di `docs/` — lihat [docs/00-INDEX.md](./docs/direction/00-INDEX.md).
 
 ### Baca di Obsidian (Android)
 ```bash

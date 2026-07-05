@@ -1,29 +1,23 @@
-# ☁️ Cloudflare
+# Cloudflare — Service Overview
 
-> Infrastructure utama Sendbook: Workers (API), R2 (gambar), Pages (storefront), DNS (domain).
+Akun: `Moehamadhkl@gmail.com` (reuse dari Orca)
+Dashboard: https://dash.cloudflare.com/
+Account ID: `cfcb770cf5a91b6505a25d48d476e4c7`
 
-Cloudflare punya beberapa sub-service yang perlu diatur masing-masing.
-Lihat file terpisah untuk detail:
+## API Token
 
-| File | Sub-service | Status |
-|---|---|---|
-| `workers.md` | API backend (Hono.js) | ⬜ |
-| `r2.md` | Image storage (produk) | ⬜ |
-| `pages.md` | Storefront + landing page | ⬜ |
-| `dns.md` | Custom domain records | ⬜ |
+Token: `kvAsLENRut_Z7Vpda5D0LyCpyDzTapknNF4KKmBC`
+Permissions:
+- ✅ Pages Write (deploy, env vars, compat flags)
+- ✅ R2 Read (list objects, read)
+- ❌ Workers Write (cannot deploy Workers — use Pages Functions instead)
+- ❌ R2 Create (cannot create buckets — use dashboard)
 
-## Akun Cloudflare
+## Sub-services
 
-| Item | Nilai | Status |
-|---|---|---|
-| **Email** | `Moehamadhkl@gmail.com` (akun Orca) | ✅ |
-| **Account ID** | `cfcb770cf5a91b6505a25d48d476e4c7` | ✅ |
-| **API Token** | (pakai token `zenius` dari `.env.cloudflare`) | ✅ |
-
-## Resource yang sudah dibuat
-
-| Resource | Nama | Status |
-|---|---|---|
-| **Pages** | `sendbook` → `https://sendbook.pages.dev` | ✅ |
-| **R2 bucket** | `sendbook-products` | ⬜ (perlu API token baru) |
-| **Worker** | `sendbook-api` | ⬜ (perlu deploy dari laptop) |
+| Service | File |
+|---|---|
+| Pages | [`./pages.md`](./pages.md) |
+| R2 | [`./r2.md`](./r2.md) |
+| Workers | [`./workers.md`](./workers.md) |
+| DNS | [`./dns.md`](./dns.md) |

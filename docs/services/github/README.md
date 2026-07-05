@@ -1,30 +1,29 @@
-# GitHub
+# GitHub — Repository
 
-> Hosting kode sumber Sendbook, issue tracking, dan CI/CD (opsional).
+## Repo
 
----
+| Properti | Value |
+|---|---|
+| Owner | `myorca-sys` |
+| Repo name | `sendbook` |
+| Visibility | Public |
+| URL | `https://github.com/mvorca-sys/sendbook` (fix: `myorca-sys`) |
+| Default branch | `main` |
 
-## Isian Konfigurasi
+## Remote
 
-| Item | Nilai | Status |
-|---|---|---|
- | **Akun GitHub** | `myorca-sys` | ✅ |
-| **Nama Repo** | `sendbook` | ✅ |
-| **Visibility** | `public` | ✅ |
-| **Remote URL** | `https://github.com/myorca-sys/sendbook.git` (HTTPS) | ✅ |
-| **Default Branch** | `main` | ✅ |
+```bash
+git remote -v
+origin  https://github.com/mvorca-sys/sendbook.git (fetch)
+origin  https://github.com/mvorca-sys/sendbook.git (push)
+```
 
-## Setup yang sudah dilakukan
+## Tokens (Exposed — Revoked?)
 
-- ✅ Repo dibuat: https://github.com/myorca-sys/sendbook
-- ✅ Code sudah di-push
-- ✅ Remote sudah diset (HTTPS dengan token, lalu dibersihkan dari URL)
-- [ ] (Opsional) Set branch protection untuk `main`:
-  - Settings → Branches → Add rule
-  - Require PR review before merge
-- [ ] (Opsional) Setup GitHub Actions untuk CI
+Dua token GitHub terekspos di git history Orca (user ngakal dan myorca-sys).
+Keduanya sudah di-revoke. Remote URL sudah dibersihkan dari token.
 
-## Catatan
+## CI/CD
 
-- SSH key disarankan (daripada HTTPS + token)
-- Simpan secrets (DATABASE_URL, dll) di GitHub Secrets kalau pake Actions
+Cloudflare Pages auto-deploy on push to `main`.
+Tidak ada GitHub Actions.

@@ -1,45 +1,23 @@
-# ⚡ Upstash Redis — Caching
+# Upstash — Redis
 
-> Redis untuk rate limiting API, caching data, dan session store.
+## ⚠️ PERINGATAN: DEV ONLY
 
-| Item | Nilai | Status |
-|---|---|---|
-| **Email Akun** | (pakai akun GitHub `ngakal`) | ⬜ |
-| **Database Name** | `powerful-crow-69427` (instance Orca) | ✅ reuse |
-| **Region** | (tidak diketahui, ping OK dari SG) | ✅ |
-| **REST URL** | `https://powerful-crow-69427.upstash.io` | ✅ |
-| **REST Token** | `gQAAAAAAAQ8zAAIgcDIzNzIxOWVjNDZhMGE0MzU1ODQ0ZmNhOGE0Mzg1OTI3ZA` | ✅ |
+Redis instance ini **reuse dari Orca**. Token sudah terekspos di git history Orca.
+**Jangan gunakan untuk production.** Buat instance baru sebelum launch publik.
 
-## Verifikasi
+## Koneksi
 
-- ✅ Redis connection diverifikasi: `PONG` dari Termux
+| Properti | Value |
+|---|---|
+| Instance name | `powerful-crow-69427` |
+| REST URL | `https://powerful-crow-69427.upstash.io` |
+| Token | Ada di Orca git history (jangan dipakai untuk production) |
+| Status | ✅ Verified PONG via `/api/health` |
 
-## Setup selanjutnya
+## Penggunaan Saat Ini
 
-- [ ] Bisa buat instance baru khusus sendbook (rekomendasi)
-- [ ] Atau reuse instance Orca yang sudah ada
-- [ ] Copy credentials ke environment:
+Redis dipakai untuk:
+- ⬜ Rate limiting (belum aktif)
+- ⬜ Session caching (belum aktif)
 
-> ⚠️ Token ini sudah terekspos di git history Orca. Sebaiknya buat instance Redis baru untuk production.
-```bash
-# .dev.vars
-UPSTASH_REDIS_REST_URL=https://[id].upstash.io
-UPSTASH_REDIS_REST_TOKEN=[token]
-
-# wrangler secret (production)
-echo "$UPSTASH_REDIS_REST_URL" | npx wrangler secret put UPSTASH_REDIS_REST_URL
-echo "$UPSTASH_REDIS_REST_TOKEN" | npx wrangler secret put UPSTASH_REDIS_REST_TOKEN
-```
-
-## Yang Pake Redis di Sendbook
-
-| Fitur | Keterangan | Status |
-|---|---|---|
-| Rate limiting | 100 req/min per IP | ⬜ Belum |
-| Session cache | Better-Auth session | ✅ Bisa |
-| Analytics counter | Hitungan real-time | ⬜ Belum |
-
-## Catatan
-
-- Free tier Upstash cukup untuk development (10.000 cmd/hari)
-- Redis via REST API — cocok untuk Cloudflare Workers (HTTP, bukan TCP)
+Saat ini Redis hanya terverifikasi koneksinya (PONG), belum ada fungsionalitas aktif.

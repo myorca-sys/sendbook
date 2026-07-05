@@ -22,14 +22,18 @@ Documents/sendbook/              ← vault root (Obsidian)
 ├── .obsidian/                   ← konfigurasi vault (auto)
 │
 ├── docs/                        ← semua dokumentasi
-│   ├── 00-INDEX.md              ← daftar isi
-│   ├── 01-VISION.md
-│   ├── 02-PROBLEM.md
-│   ├── 03-ARCHITECTURE.md
-│   ├── 04-MASTERY-TODO.md
-│   ├── 05-ROADMAP.md
-│   ├── 06-PITCH-DECK.md
-│   ├── README-OBSIDIAN.md       ← file ini
+│   ├── direction/               ← arah proyek (jarang berubah)
+│   │   ├── 00-INDEX.md          ← daftar isi
+│   │   ├── 01-VISION.md
+│   │   ├── 02-PROBLEM.md
+│   │   ├── 05-ROADMAP.md
+│   │   └── 06-PITCH-DECK.md
+│   │
+│   ├── technical/               ← keperluan teknis
+│   │   ├── 03-ARCHITECTURE.md
+│   │   ├── 04-MASTERY-TODO.md
+│   │   ├── AI_CONTEXT.md
+│   │   └── README-OBSIDIAN.md   ← file ini
 │   │
 │   └── services/                ← konfigurasi service
 │       ├── github/
@@ -49,8 +53,8 @@ Documents/sendbook/              ← vault root (Obsidian)
 | **Baca dokumentasi** | Buka file `.md` |
 | **Isi konfigurasi service** | Buka `services/[nama]/README.md` → isi tabel |
 | **Tambah service baru** | Copy `services/template/` → rename → isi |
-| **Track progress** | Update `04-MASTERY-TODO.md` |
-| **Edit pitch deck** | Update `06-PITCH-DECK.md` |
+| **Track progress** | Update `technical/04-MASTERY-TODO.md` |
+| **Edit pitch deck** | Update `direction/06-PITCH-DECK.md` |
 
 ## Tips
 

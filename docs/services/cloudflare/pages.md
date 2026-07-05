@@ -1,32 +1,46 @@
-# Cloudflare Pages — Storefront + Landing
+# Cloudflare Pages
 
-> Hosting Astro storefront & landing page Sendbook.
+## Project: sendbook
 
-| Item | Nilai | Status |
+| Properti | Value |
+|---|---|
+| URL | https://sendbook.pages.dev |
+| Git integration | myorca-sys/sendbook (auto-deploy on push to main) |
+| Build command | `npm install && cd apps/web && npm install && npm run build` |
+| Output dir | `apps/web/dist` |
+| Functions | ✅ Yes (root `/functions/`) |
+| Node.js compat | ✅ `nodejs_compat` compatibility flag |
+
+## Environment Variables (set via API)
+
+| Variable | Value |
+|---|---|
+| `DATABASE_URL` | `postgresql://postgres.ppwocgmumbdbvnqprxrg:Habibiendut1.@aws-1-ap-southeast-1.pooler.supabase.com:6543/postgres` |
+| `BETTER_AUTH_SECRET` | `f3JU7XRj6C3zmKZZYxMCwM2C2fUTCE0hKmcNNP2k1GM=` |
+| `BETTER_AUTH_URL` | `https://sendbook.pages.dev` |
+| `UPSTASH_REDIS_URL` | `https://powerful-crow-69427.upstash.io` |
+| `UPSTASH_REDIS_TOKEN` | Abaikan — salah, tapi Redis tetap PONG (kemungkinan pakai env default) |
+| `ENVIRONMENT` | `development` |
+
+## Functions (Auto-deployed)
+
+| Path | File | Deskripsi |
 |---|---|---|
-| **Project Name** | `sendbook` | ✅ |
-| **Production Domain** | `sendbook.id` (belum dibeli, pakai `sendbook.pages.dev` dulu) | ⬜ |
-| **Build Command** | (Astro: `npm run build`) | ⬜ |
-| **Build Output** | `dist` | ⬜ |
+| `/api/*` | `functions/api/[[path]].ts` | Hono.js API (stores, products, upload, analytics) |
+| `/store/*` | `functions/store/[[slug]].ts` | SSR storefront |
 
-## Setup yang sudah dilakukan
+## Deploy Flow
 
-- ✅ Pages project `sendbook` dibuat via API
-- ✅ Akses sementara di `https://sendbook.pages.dev`
-- ✅ Direct upload enabled (bisa upload build via dashboard)
+```
+Push to main → GitHub webhook → Cloudflare Pages:
+  1. Install npm deps (root + apps/web)
+  2. Build Astro (apps/web)
+  3. Copy functions/ ke output
+  4. Deploy to sendbook.pages.dev
+```
 
-## Langkah Setup selanjutnya
+## Troubleshooting
 
-- [ ] Buka Cloudflare Dashboard → Workers & Pages → **sendbook**
-- [ ] Hubungkan ke GitHub repo `myorca-sys/sendbook`
-- [ ] Set build config (setelah Astro storefront siap):
-  - Build command: `cd apps/web && npm install && npm run build`
-  - Build output directory: `apps/web/dist`
-- [ ] Deploy
-- [ ] (Setelah domain aktif) Set custom domain → `sendbook.id`
-
-## Catatan
-
-- Pages auto-deploy setiap push ke branch `main`
-- Preview deployment untuk setiap PR (branch lain)
-- Build log bisa dilihat di dashboard
+- **Functions not working?** Check `functions/` exists at repo root (not inside `apps/web/`)
+- **Build fails?** Cloudflare uses a Linux amd64 build container — Astro static mode should work fine
+- **Env vars not applying?** Set via API or dashboard, then trigger a new deploy
