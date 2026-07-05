@@ -253,6 +253,7 @@ async function deleteSession(env: Env, token: string): Promise<void> {
 }
 
 app.post('/api/dashboard/login', async (c) => {
+  try {
   const { email, password } = await c.req.json()
   if (!email || !password) return c.json({ error: 'Email and password required' }, 400)
   const sql = getSql(c.env)
@@ -272,6 +273,7 @@ app.post('/api/dashboard/login', async (c) => {
   } finally {
     await sql.end()
   }
+  } catch (e: any) { return c.json({ error: e?.message || 'Login error' }, 500) }
 })
 
 app.get('/api/dashboard/me', async (c) => {

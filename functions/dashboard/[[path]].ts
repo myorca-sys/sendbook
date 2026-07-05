@@ -262,6 +262,7 @@ function settingsPage(user: any, store: any): string {
 }
 
 export async function onRequest(context: any) {
+  try {
   const { request, env } = context
   const url = new URL(request.url)
   const path = url.pathname.replace(/^\/dashboard\/?/, '') || 'overview'
@@ -326,5 +327,11 @@ export async function onRequest(context: any) {
     })
   } finally {
     await sql.end()
+  }
+  } catch (e: any) {
+    return new Response('Dashboard error: ' + (e?.message || e), {
+      status: 500,
+      headers: { 'content-type': 'text/plain;charset=utf-8' },
+    })
   }
 }
