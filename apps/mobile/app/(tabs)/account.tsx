@@ -18,7 +18,7 @@ export default function AccountScreen() {
   const load = async () => {
     if (!token) return
     try {
-      const s = await apiWithToken('/api/stores/warung-bu-ana', token)
+      const s = await apiWithToken('/api/stores/warung-bu-ana', token) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
       setStore(s)
       setName(s.name)
       setDesc(s.description || '')

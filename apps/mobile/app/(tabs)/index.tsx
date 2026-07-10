@@ -16,7 +16,7 @@ export default function BerandaScreen() {
   const load = async () => {
     if (!token || !user?.storeId) { setLoading(false); return }
     try {
-      const s = await apiWithToken('/api/stores/warung-bu-ana', token)
+      const s = await apiWithToken('/api/stores/warung-bu-ana', token) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
       setStore(s)
       const st = await apiWithToken(`/api/stores/${s.slug}/analytics`, token)
       setStats(st)

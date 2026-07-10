@@ -21,7 +21,7 @@ export default function ProductsScreen() {
   const load = async () => {
     if (!token) return
     try {
-      const p = await apiWithToken('/api/stores/warung-bu-ana/products', token)
+      const p = await apiWithToken('/api/stores/warung-bu-ana/products', token) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
       setProducts(p)
     } catch {}
     setLoading(false)
@@ -57,7 +57,7 @@ export default function ProductsScreen() {
       if (editing) {
         await apiWithToken(`/api/products/${editing.id}`, token!, { method: 'PATCH', body: JSON.stringify(body) })
       } else {
-        await apiWithToken('/api/stores/warung-bu-ana/products', token!, { method: 'POST', body: JSON.stringify(body) })
+        await apiWithToken('/api/stores/warung-bu-ana/products', token!, { method: 'POST', body: JSON.stringify(body) }) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
       }
       setModal(false)
       await load()
