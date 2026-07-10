@@ -276,6 +276,24 @@ app.post('/api/dashboard/login', async (c) => {
   } catch (e: any) { return c.json({ error: e?.message || 'Login error' }, 500) }
 })
 
+app.get('/api/dashboard/store', async (c) => {
+  const cookie = c.req.header('cookie') || ''
+  const match = cookie.match(/sendbook_session=([^;]+)/)
+  if (!match) return c.json({ error: 'Not authenticated' }, 401)
+  const session = await getSession(c.env, match[1])
+  if (!session) return c.json({ error: 'Session expired' }, 401)
+  const sql = getSql(c.env)
+  try {
+    const [user] = await sql`SELECT store_id FROM merchant_users WHERE id = ${session.userId}`
+    if (!user?.store_id) return c.json({ error: 'No store found' }, 404)
+    const [store] = await sql`SELECT * FROM stores WHERE id = ${user.store_id}`
+    if (!store) return c.json({ error: 'Store not found' }, 404)
+    return c.json(store)
+  } finally {
+    await sql.end()
+  }
+})
+
 app.get('/api/dashboard/me', async (c) => {
   const cookie = c.req.header('cookie') || ''
   const match = cookie.match(/sendbook_session=([^;]+)/)

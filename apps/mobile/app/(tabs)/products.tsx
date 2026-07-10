@@ -6,7 +6,7 @@ import { theme } from '../../lib/theme'
 import * as ImagePicker from 'expo-image-picker'
 
 export default function ProductsScreen() {
-  const { token } = useAuth()
+  const { token, store } = useAuth()
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -19,15 +19,15 @@ export default function ProductsScreen() {
   const [images, setImages] = useState<string[]>([])
 
   const load = async () => {
-    if (!token) return
+    if (!token || !store?.slug) return
     try {
-      const p = await apiWithToken('/api/stores/warung-bu-ana/products', token) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
+      const p = await apiWithToken(`/api/stores/${store.slug}/products`, token)
       setProducts(p)
     } catch {}
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, store?.slug])
 
   const onRefresh = async () => { setRefreshing(true); await load(); setRefreshing(false) }
 
@@ -52,12 +52,13 @@ export default function ProductsScreen() {
 
   const save = async () => {
     if (!name || !price) { Alert.alert('Error', 'Nama dan harga wajib diisi'); return }
+    if (!store?.slug) { Alert.alert('Error', 'Toko tidak ditemukan'); return }
     const body = { name, price: parseInt(price), description: desc, category, images }
     try {
       if (editing) {
         await apiWithToken(`/api/products/${editing.id}`, token!, { method: 'PATCH', body: JSON.stringify(body) })
       } else {
-        await apiWithToken('/api/stores/warung-bu-ana/products', token!, { method: 'POST', body: JSON.stringify(body) }) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
+        await apiWithToken(`/api/stores/${store.slug}/products`, token!, { method: 'POST', body: JSON.stringify(body) })
       }
       setModal(false)
       await load()

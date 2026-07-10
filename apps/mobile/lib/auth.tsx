@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react'
 import * as SecureStore from 'expo-secure-store'
-import { api, apiWithToken } from './api'
+import { api } from './api'
 
 const BASE = 'https://sendbook.pages.dev'
 
@@ -11,8 +11,16 @@ type User = {
   storeId: string | null
 }
 
+type Store = {
+  id: string
+  slug: string
+  name: string
+  [key: string]: any
+}
+
 type AuthContext = {
   user: User | null
+  store: Store | null
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
@@ -22,8 +30,15 @@ type AuthContext = {
 
 const ctx = createContext<AuthContext>(null!)
 
+async function fetchStore(token: string): Promise<Store | null> {
+  try {
+    return await api('/api/dashboard/store', { headers: { Cookie: `sendbook_session=${token}` } })
+  } catch { return null }
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
+  const [store, setStore] = useState<Store | null>(null)
   const [token, setToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -31,15 +46,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const stored = await SecureStore.getItemAsync('session_token')
     if (!stored) { setIsLoading(false); return }
     try {
-      const data = await api('/api/dashboard/me', {
-        headers: { Cookie: `sendbook_session=${stored}` },
-      })
+      const data = await api('/api/dashboard/me', { headers: { Cookie: `sendbook_session=${stored}` } })
       setUser(data.user)
       setToken(stored)
+      setStore(await fetchStore(stored))
     } catch {
       await SecureStore.deleteItemAsync('session_token')
-      setUser(null)
-      setToken(null)
+      setUser(null); setToken(null); setStore(null)
     }
     setIsLoading(false)
   }, [])
@@ -64,6 +77,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await SecureStore.setItemAsync('session_token', t)
     setUser(data.user)
     setToken(t)
+    setStore(await fetchStore(t))
   }
 
   const logout = async () => {
@@ -74,12 +88,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }).catch(() => {})
     }
     await SecureStore.deleteItemAsync('session_token')
-    setUser(null)
-    setToken(null)
+    setUser(null); setToken(null); setStore(null)
   }
 
   return (
-    <ctx.Provider value={{ user, token, isLoading, login, logout, refresh }}>
+    <ctx.Provider value={{ user, store, token, isLoading, login, logout, refresh }}>
       {children}
     </ctx.Provider>
   )

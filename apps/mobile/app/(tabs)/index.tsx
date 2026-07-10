@@ -6,25 +6,22 @@ import { theme } from '../../lib/theme'
 import QRCode from '../../components/QRCode'
 
 export default function BerandaScreen() {
-  const { user, token } = useAuth()
-  const [store, setStore] = useState<any>(null)
+  const { user, store, token } = useAuth()
   const [stats, setStats] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [showQR, setShowQR] = useState(false)
 
   const load = async () => {
-    if (!token || !user?.storeId) { setLoading(false); return }
+    if (!token || !store?.slug) { setLoading(false); return }
     try {
-      const s = await apiWithToken('/api/stores/warung-bu-ana', token) // ponytail: hardcoded fallback for dev until storeId mapping works end-to-end
-      setStore(s)
-      const st = await apiWithToken(`/api/stores/${s.slug}/analytics`, token)
+      const st = await apiWithToken(`/api/stores/${store.slug}/analytics`, token)
       setStats(st)
     } catch {}
     setLoading(false)
   }
 
-  useEffect(() => { load() }, [token])
+  useEffect(() => { load() }, [token, store?.slug])
 
   const onRefresh = async () => {
     setRefreshing(true)
@@ -75,7 +72,7 @@ export default function BerandaScreen() {
       <Modal visible={showQR} transparent animationType="fade">
         <TouchableOpacity style={styles.modalOverlay} activeOpacity={1} onPress={() => setShowQR(false)}>
           <View style={styles.modalContent}>
-            <QRCode value={`https://sendbook.pages.dev/store/${store?.slug || 'warung-bu-ana'}`} size={250} />
+            <QRCode value={`https://sendbook.pages.dev/store/${store?.slug}`} size={250} />
             <Text style={styles.qrLabel}>Scan untuk buka toko</Text>
             <TouchableOpacity onPress={() => setShowQR(false)}>
               <Text style={styles.closeBtn}>Tutup</Text>
