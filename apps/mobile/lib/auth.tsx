@@ -24,6 +24,7 @@ type AuthContext = {
   token: string | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
+  register: (data: { email: string; password: string; name: string; store_name: string; store_slug: string; whatsapp: string }) => Promise<void>
   logout: () => Promise<void>
   refresh: () => Promise<void>
 }
@@ -80,6 +81,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStore(await fetchStore(t))
   }
 
+  const register = async (data: { email: string; password: string; name: string; store_name: string; store_slug: string; whatsapp: string }) => {
+    const res = await fetch(BASE + '/api/dashboard/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({ error: 'Registration failed' }))
+      throw new Error(body.error)
+    }
+    const d = await res.json()
+    const cookie = res.headers.get('set-cookie') || ''
+    const match = cookie.match(/sendbook_session=([^;]+)/)
+    const t = match?.[1]
+    if (!t) throw new Error('No session token')
+    await SecureStore.setItemAsync('session_token', t)
+    setUser(d.user)
+    setToken(t)
+    setStore(await fetchStore(t))
+  }
+
   const logout = async () => {
     if (token) {
       await api('/api/dashboard/logout', {
@@ -92,7 +114,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ctx.Provider value={{ user, store, token, isLoading, login, logout, refresh }}>
+    <ctx.Provider value={{ user, store, token, isLoading, login, register, logout, refresh }}>
       {children}
     </ctx.Provider>
   )

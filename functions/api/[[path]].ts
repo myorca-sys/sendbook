@@ -27,6 +27,35 @@ function getSql(env: Env) {
   return postgres(env.DATABASE_URL, { prepare: false, max: 2, idle_timeout: 30 })
 }
 
+// ─── Rate Limiting via Upstash ───────────────────────────
+async function rateLimit(env: Env, key: string, limit: number, windowMs: number): Promise<{ success: boolean; remaining: number; reset: number }> {
+  const now = Date.now()
+  const windowSec = Math.ceil(windowMs / 1000)
+  const redisKey = `ratelimit:${key}:${Math.floor(now / windowMs)}`
+  const resp = await fetch(env.UPSTASH_REDIS_REST_URL + '/incr/' + redisKey, {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
+  })
+  if (!resp.ok) return { success: true, remaining: limit, reset: now + windowMs } // fail open
+  const data = await resp.json()
+  const count = data.result || 1
+  if (count === 1) {
+    await fetch(env.UPSTASH_REDIS_REST_URL + '/expire/' + redisKey + '/' + windowSec, {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + env.UPSTASH_REDIS_REST_TOKEN },
+    })
+  }
+  return {
+    success: count <= limit,
+    remaining: Math.max(0, limit - count),
+    reset: now + windowMs,
+  }
+}
+
+function getClientIP(c: any): string {
+  return c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+}
+
 app.get("/api/health", (c) => c.json({ status: "ok", service: "sendbook" }))
 
 const createStoreSchema = z.object({
@@ -71,13 +100,22 @@ app.get("/api/stores/:slug", async (c) => {
 
 app.patch("/api/stores/:slug", async (c) => {
   const body = await c.req.json()
+  const cookie = c.req.header('cookie') || ''
+  const match = cookie.match(/sendbook_session=([^;]+)/)
+  if (!match) return c.json({ error: 'Not authenticated' }, 401)
+  const session = await getSession(c.env, match[1])
+  if (!session) return c.json({ error: 'Session expired' }, 401)
   const sql = getSql(c.env)
   try {
-    const [store] = await sql`SELECT * FROM stores WHERE slug = ${c.req.param("slug")}`
+    const [store] = await sql`
+      SELECT s.* FROM stores s
+      JOIN merchant_users u ON u.store_id = s.id
+      WHERE s.slug = ${c.req.param("slug")} AND u.id = ${session.userId}
+    `
     if (!store) return c.json({ error: "Not found" }, 404)
     const [updated] = await sql`
       UPDATE stores SET ${sql(body, "name", "description", "address", "whatsapp", "maps_url", "theme", "social_links", "payment_methods", "is_published")}, updated_at = now()
-      WHERE slug = ${c.req.param("slug")}
+      WHERE id = ${store.id}
       RETURNING *
     `
     return c.json(updated)
@@ -218,6 +256,15 @@ async function verifyPassword(password: string, hash: string): Promise<boolean> 
   return d.every((v, i) => v === expected[i])
 }
 
+async function hashPassword(password: string): Promise<string> {
+  const salt = crypto.getRandomValues(new Uint8Array(16))
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits'])
+  const derived = await crypto.subtle.deriveBits({ name: 'PBKDF2', salt, iterations: 100000, hash: 'SHA-256' }, key, 256)
+  const saltB64 = btoa(String.fromCharCode(...salt))
+  const derivedB64 = btoa(String.fromCharCode(...new Uint8Array(derived)))
+  return `${saltB64}:${derivedB64}`
+}
+
 async function createSession(env: Env, userId: string): Promise<string> {
   const token = crypto.randomUUID()
   const expiresAt = Date.now() + 7 * 24 * 60 * 60 * 1000 // 7 days
@@ -253,6 +300,8 @@ async function deleteSession(env: Env, token: string): Promise<void> {
 }
 
 app.post('/api/dashboard/login', async (c) => {
+  const rl = await rateLimit(c.env, `login:${getClientIP(c)}`, 5, 60_000)
+  if (!rl.success) return c.json({ error: 'Too many attempts, try again later' }, 429)
   try {
   const { email, password } = await c.req.json()
   if (!email || !password) return c.json({ error: 'Email and password required' }, 400)
@@ -274,6 +323,48 @@ app.post('/api/dashboard/login', async (c) => {
     await sql.end()
   }
   } catch (e: any) { return c.json({ error: e?.message || 'Login error' }, 500) }
+})
+
+app.post('/api/dashboard/register', async (c) => {
+  const rl = await rateLimit(c.env, `register:${getClientIP(c)}`, 3, 60_000)
+  if (!rl.success) return c.json({ error: 'Too many attempts, try again later' }, 429)
+  const { email, password, name, store_name, store_slug, whatsapp } = await c.req.json()
+  if (!email || !password || !name || !store_name || !store_slug || !whatsapp)
+    return c.json({ error: 'All fields required' }, 400)
+  if (password.length < 6) return c.json({ error: 'Password must be at least 6 characters' }, 400)
+  if (!/^[a-z0-9-]+$/.test(store_slug)) return c.json({ error: 'Slug must be lowercase letters, numbers, hyphens only' }, 400)
+  const sql = getSql(c.env)
+  try {
+    const [existing] = await sql`SELECT id FROM merchant_users WHERE email = ${email}`
+    if (existing) return c.json({ error: 'Email already registered' }, 409)
+    const [slugConflict] = await sql`SELECT id FROM stores WHERE slug = ${store_slug}`
+    if (slugConflict) return c.json({ error: 'Store slug already taken' }, 409)
+
+    const [store] = await sql`
+      INSERT INTO stores (owner_id, slug, name, whatsapp)
+      VALUES (${email}, ${store_slug}, ${store_name}, ${whatsapp})
+      RETURNING *
+    `
+    const hash = await hashPassword(password)
+    const [user] = await sql`
+      INSERT INTO merchant_users (email, password_hash, name, store_id)
+      VALUES (${email}, ${hash}, ${name}, ${store.id})
+      RETURNING id, email, name, store_id
+    `
+    const token = await createSession(c.env, user.id)
+    return new Response(JSON.stringify({ user: { id: user.id, email: user.email, name: user.name, storeId: user.store_id } }), {
+      status: 201,
+      headers: {
+        'content-type': 'application/json',
+        'set-cookie': `sendbook_session=${token}; HttpOnly; Secure; SameSite=Lax; Path=/; Max-Age=604800`,
+      },
+    })
+  } catch (e: any) {
+    if (e?.code === '23505') return c.json({ error: 'Email or slug already taken' }, 409)
+    return c.json({ error: 'Registration failed' }, 500)
+  } finally {
+    await sql.end()
+  }
 })
 
 app.get('/api/dashboard/store', async (c) => {

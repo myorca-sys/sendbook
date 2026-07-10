@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, ScrollView, TextInput, TouchableOpacity, Alert, Switch } from 'react-native'
 import { router } from 'expo-router'
 import { useAuth } from '../../lib/auth'
+import { useToast } from '../../lib/toast'
 import { apiWithToken } from '../../lib/api'
 import { theme } from '../../lib/theme'
 
 export default function AccountScreen() {
   const { user, store, token, logout, refresh } = useAuth()
+  const { showToast } = useToast()
   const [name, setName] = useState('')
   const [desc, setDesc] = useState('')
   const [wa, setWa] = useState('')
@@ -32,9 +34,9 @@ export default function AccountScreen() {
         method: 'PATCH',
         body: JSON.stringify({ name, description: desc, whatsapp: wa, address, maps_url: maps, is_published: published }),
       })
-      await refresh() // refresh store di context setelah save
-      Alert.alert('Tersimpan', 'Pengaturan toko berhasil disimpan.')
-    } catch (e: any) { Alert.alert('Error', e.message) }
+      await refresh()
+      showToast('Pengaturan toko tersimpan', 'success')
+    } catch (e: any) { showToast(e.message, 'error') }
   }
 
   const handleLogout = () => {

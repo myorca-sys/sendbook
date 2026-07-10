@@ -2,6 +2,8 @@ import { Stack } from 'expo-router'
 import { StatusBar } from 'expo-status-bar'
 import { View, StyleSheet } from 'react-native'
 import { AuthProvider, useAuth } from '../lib/auth'
+import { ToastProvider } from '../lib/toast'
+import { ToastContainer } from '../components/ToastContainer'
 import { theme } from '../lib/theme'
 
 function RootNavigator() {
@@ -12,22 +14,31 @@ function RootNavigator() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
-      {!user ? (
-        <Stack.Screen name="onboarding" />
-      ) : (
-        <Stack.Screen name="(tabs)" />
-      )}
-    </Stack>
+    <>
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: theme.bg } }}>
+        {!user ? (
+          <>
+            <Stack.Screen name="onboarding" />
+            <Stack.Screen name="login" />
+            <Stack.Screen name="register" />
+          </>
+        ) : (
+          <Stack.Screen name="(tabs)" />
+        )}
+      </Stack>
+      <ToastContainer />
+    </>
   )
 }
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <StatusBar style="dark" />
-      <RootNavigator />
-    </AuthProvider>
+    <ToastProvider>
+      <AuthProvider>
+        <StatusBar style="dark" />
+        <RootNavigator />
+      </AuthProvider>
+    </ToastProvider>
   )
 }
 

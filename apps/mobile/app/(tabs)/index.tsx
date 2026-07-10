@@ -50,18 +50,23 @@ export default function BerandaScreen() {
         )}
       </View>
 
-      {store && (
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNum}>{visits}</Text>
-            <Text style={styles.statLabel}>Kunjungan</Text>
+        {loading ? (
+          <View style={styles.statsRow}>
+            <View style={[styles.statCard, { opacity: 0.5 }]}><Text style={styles.statNum}>-</Text><Text style={styles.statLabel}>Loading...</Text></View>
+            <View style={[styles.statCard, { opacity: 0.5 }]}><Text style={styles.statNum}>-</Text><Text style={styles.statLabel}>Loading...</Text></View>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statNum}>{clicks}</Text>
-            <Text style={styles.statLabel}>Klik WA</Text>
+        ) : store ? (
+          <View style={styles.statsRow}>
+            <View style={styles.statCard}>
+              <Text style={styles.statNum}>{visits}</Text>
+              <Text style={styles.statLabel}>Kunjungan</Text>
+            </View>
+            <View style={styles.statCard}>
+              <Text style={styles.statNum}>{clicks}</Text>
+              <Text style={styles.statLabel}>Klik WA</Text>
+            </View>
           </View>
-        </View>
-      )}
+        ) : null}
 
       {store && (
         <TouchableOpacity style={styles.qrButton} onPress={() => setShowQR(true)}>

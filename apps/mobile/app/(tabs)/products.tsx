@@ -1,12 +1,14 @@
 import { useEffect, useState } from 'react'
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, TextInput, Modal, Alert, RefreshControl, Image } from 'react-native'
 import { useAuth } from '../../lib/auth'
+import { useToast } from '../../lib/toast'
 import { apiWithToken, uploadImage } from '../../lib/api'
 import { theme } from '../../lib/theme'
 import * as ImagePicker from 'expo-image-picker'
 
 export default function ProductsScreen() {
   const { token, store } = useAuth()
+  const { showToast } = useToast()
   const [products, setProducts] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
@@ -51,8 +53,8 @@ export default function ProductsScreen() {
   }
 
   const save = async () => {
-    if (!name || !price) { Alert.alert('Error', 'Nama dan harga wajib diisi'); return }
-    if (!store?.slug) { Alert.alert('Error', 'Toko tidak ditemukan'); return }
+    if (!name || !price) { showToast('Nama dan harga wajib diisi', 'error'); return }
+    if (!store?.slug) { showToast('Toko tidak ditemukan', 'error'); return }
     const body = { name, price: parseInt(price), description: desc, category, images }
     try {
       if (editing) {
@@ -61,16 +63,20 @@ export default function ProductsScreen() {
         await apiWithToken(`/api/stores/${store.slug}/products`, token!, { method: 'POST', body: JSON.stringify(body) })
       }
       setModal(false)
+      showToast(editing ? 'Produk diperbarui' : 'Produk ditambahkan', 'success')
       await load()
-    } catch (e: any) { Alert.alert('Error', e.message) }
+    } catch (e: any) { showToast(e.message, 'error') }
   }
 
   const deleteProduct = (id: string) => {
     Alert.alert('Hapus produk?', '', [
       { text: 'Batal', style: 'cancel' },
       { text: 'Hapus', style: 'destructive', onPress: async () => {
-        await apiWithToken(`/api/products/${id}`, token!, { method: 'DELETE' })
-        await load()
+        try {
+          await apiWithToken(`/api/products/${id}`, token!, { method: 'DELETE' })
+          showToast('Produk dihapus', 'success')
+          await load()
+        } catch (e: any) { showToast(e.message, 'error') }
       }},
     ])
   }
